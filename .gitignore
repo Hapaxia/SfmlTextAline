@@ -10,6 +10,36 @@
 *.userosscache
 *.sln.docstates
 
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.props
+*.vc.db
+*.vc.vc.opendb
+
+*.lnk
+*.bak
+
+licence for header.txt
+
+# wip folders
+
+
+# private folders
+extlibs/
+backup/
+backup_*/
+test/
+test*/
+test_*/
+temp/
+temp*/
+temp_*/
+temp_storage/
+PropertySheets/
+priv/
+priv_*/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -18,14 +48,17 @@ mono_crash.*
 
 # Build results
 [Dd]ebug/
+[Dd]ebugStatic/
 [Dd]ebugPublic/
 [Rr]elease/
+[Rr]eleaseStatic/
 [Rr]eleases/
 x64/
 x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+build/
 bld/
 [Bb]in/
 [Oo]bj/
