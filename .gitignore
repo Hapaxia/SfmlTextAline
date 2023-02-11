@@ -19,6 +19,8 @@
 
 *.lnk
 *.bak
+priv*.*
+priv_*.*
 
 licence for header.txt
 
