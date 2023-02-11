@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// SFML Text Aline (https://github.com/Hapaxia/SfmlTextAline)
+// SFML Text "Aline" (https://github.com/Hapaxia/SfmlTextAline)
 //
 // Copyright(c) 2023 M.J.Silk
 //

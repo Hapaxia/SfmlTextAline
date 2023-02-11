@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// SFML Text Aline (https://github.com/Hapaxia/SfmlTextAline)
+// SFML Text "Aline" (https://github.com/Hapaxia/SfmlTextAline)
 //
 // Copyright(c) 2023 M.J.Silk
 //
@@ -44,32 +44,39 @@
 #include <string>
 #include <unordered_map>
 
-// SfmlTextAline v0.1.1 (WIP)
+// SfmlTextAline v0.2.0 (WIP)
 class SfmlTextAline : public sf::Drawable, public sf::Transformable
 {
 public:
-	SfmlTextAline();
+    SfmlTextAline();
     SfmlTextAline(const sf::Text& sfmlText);
+    SfmlTextAline(const SfmlTextAline& sfmlTextAline);
+    void operator=(const sf::Text& sfmlText);
 
-    enum class LineAlignment
+    enum class Align
     {
         Left,
         Center,
         Right,
+        //JustifyWhitespace,
+        JustifyCharacters,
     };
-
-    void operator=(const sf::Text& sfmlText);
 
     void setFont(const sf::Font& font);
     void setFont();
     void setString(const sf::String& string);
-    void setCharacterSize(unsigned int characterSize);
+    void setCharacterSize(std::size_t characterSize);
     void setColor(sf::Color color);
     void setTabLength(std::size_t tabLength);
-    void setGlobalLineAlignment(LineAlignment lineAlignment);
-    void setLineAlignment(std::size_t lineIndex, LineAlignment lineAlignment);
-    void removeLineAlignment(std::size_t lineIndex);
-    void removeLineAlignments();
+    void setAlign(Align align);
+    void setMinWidth(float minWidth);
+    void setTextStyle(sf::Uint32 textStyle); // currently only uses bold and italic; ignores others
+    void setItalicShear(float italicShear);
+    void setItalicShear(); // resets to default value: SFML's value
+
+    void setLineAlign(std::size_t lineIndex, Align align);
+    void removeLineAlign(std::size_t lineIndex);
+    void removeLineAligns();
     void setLineOffset(std::size_t lineIndex, sf::Vector2f offset);
     void setLineOffset(std::size_t lineIndex, float offset);
     void removeLineOffset(std::size_t lineIndex);
@@ -77,24 +84,56 @@ public:
     void setLineColor(std::size_t lineIndex, sf::Color color);
     void removeLineColor(std::size_t lineIndex);
     void removeLineColors();
+    void setLineBold(std::size_t lineIndex, bool bold);
+    void removeLineBold(std::size_t lineIndex);
+    void removeLineBolds();
+    void setLineItalic(std::size_t lineIndex, bool italic);
+    void removeLineItalic(std::size_t lineIndex);
+    void removeLineItalics();
+
+    std::size_t getNumberOfLines() const;
+    float getLineSeparation() const;
+    const sf::Font* getFont() const;
+    sf::String getString() const;
+    std::size_t getCharacterSize() const;
+    sf::Color getColor() const;
+    std::size_t getTabLength() const;
+    Align getAlign() const;
+    float getMinWidth() const;
+    sf::Uint32 getTextStyle() const;
+    float getItalicShear() const;
+
+    Align getLineAlign(std::size_t lineIndex) const;
+    sf::Vector2f getLineOffset(std::size_t lineIndex) const;
+    sf::Color getLineColor(std::size_t lineIndex) const;
+    bool getLineBold(std::size_t lineIndex) const;
+    bool getLineItalic(std::size_t lineIndex) const;
+
+
 
 private:
     const sf::Font* m_font;
     sf::String m_string;
-    unsigned int m_characterSize;
+    std::size_t m_characterSize;
     sf::Color m_color;
     std::size_t m_tabLength;
-    LineAlignment m_globalLineAlignment;
-    std::unordered_map<std::size_t, LineAlignment> m_lineAlignments;
+    Align m_globalAlign;
+    float m_minWidth;
+    sf::Uint32 m_textStyle;
+    float m_italicShear;
+
+    std::unordered_map<std::size_t, Align> m_lineAligns;
     std::unordered_map<std::size_t, sf::Vector2f> m_lineOffsets;
     std::unordered_map<std::size_t, sf::Color> m_lineColors;
+    std::unordered_map<std::size_t, bool> m_lineBolds;
+    std::unordered_map<std::size_t, bool> m_lineItalics;
 
     struct Line
     {
         std::size_t vertexIndex;
         std::size_t numberOfQuads;
         float width;
-        LineAlignment alignment;
+        Align align;
         sf::Vector2f offset;
         sf::Color color;
     };
@@ -106,6 +145,11 @@ private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void updateVertices() const;
 
+    */
 };
+
+#ifndef SFMLTEXTALINE_NO_CLASS_SHORTCUT
+using Aline = SfmlTextAline;
+#endif // SFMLTEXTALINE_NO_CLASS_SHORTCUT
 
 #endif // SFMLTEXTALINE_HPP
