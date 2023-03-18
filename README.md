@@ -7,7 +7,7 @@ It is a single-object multi-line text object for SFML.
 It is similar to SFML's own sf::Text object but has some extra features (but doesn't include some of sf::Text's features as yet - see below).
 
 Features:
-- Lines are alignable globally (throughout the entire object) to the left, centre, right and justified (distributed/separated characters).
+- Lines are alignable globally (throughout the entire object) to the left, centre, right and justified (distributed/separated charactersor spread through whitespace only).
 - Individual lines can also be customised (including having their own alignment, colour, positional offset, bold and italic)
 - Positional offset is any offset that a single line can be given (allowing each line to be moved around freely - after alignments)
 - Can be assigned an sf::Text to reproduce it automatically (within its own features - so far)
