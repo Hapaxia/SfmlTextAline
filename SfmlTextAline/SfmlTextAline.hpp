@@ -44,7 +44,7 @@
 #include <string>
 #include <unordered_map>
 
-// SfmlTextAline v0.2.0 (WIP)
+// SfmlTextAline v0.3.0 (WIP)
 class SfmlTextAline : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -53,12 +53,12 @@ public:
     SfmlTextAline(const SfmlTextAline& sfmlTextAline);
     void operator=(const sf::Text& sfmlText);
 
-    enum class Align
+    enum class Alignment
     {
         Left,
         Center,
         Right,
-        //JustifyWhitespace,
+        JustifyWhitespace,
         JustifyCharacters,
     };
 
@@ -68,15 +68,15 @@ public:
     void setCharacterSize(std::size_t characterSize);
     void setColor(sf::Color color);
     void setTabLength(std::size_t tabLength);
-    void setAlign(Align align);
+    void setAlignment(Alignment alignment);
     void setMinWidth(float minWidth);
     void setTextStyle(sf::Uint32 textStyle); // currently only uses bold and italic; ignores others
     void setItalicShear(float italicShear);
     void setItalicShear(); // resets to default value: SFML's value
 
-    void setLineAlign(std::size_t lineIndex, Align align);
-    void removeLineAlign(std::size_t lineIndex);
-    void removeLineAligns();
+    void setLineAlignment(std::size_t lineIndex, Alignment alignment);
+    void removeLineAlignment(std::size_t lineIndex);
+    void removeLineAlignments();
     void setLineOffset(std::size_t lineIndex, sf::Vector2f offset);
     void setLineOffset(std::size_t lineIndex, float offset);
     void removeLineOffset(std::size_t lineIndex);
@@ -98,12 +98,12 @@ public:
     std::size_t getCharacterSize() const;
     sf::Color getColor() const;
     std::size_t getTabLength() const;
-    Align getAlign() const;
+    Alignment getAlignment() const;
     float getMinWidth() const;
     sf::Uint32 getTextStyle() const;
     float getItalicShear() const;
 
-    Align getLineAlign(std::size_t lineIndex) const;
+    Alignment getLineAlignment(std::size_t lineIndex) const;
     sf::Vector2f getLineOffset(std::size_t lineIndex) const;
     sf::Color getLineColor(std::size_t lineIndex) const;
     bool getLineBold(std::size_t lineIndex) const;
@@ -117,12 +117,12 @@ private:
     std::size_t m_characterSize;
     sf::Color m_color;
     std::size_t m_tabLength;
-    Align m_globalAlign;
+    Alignment m_globalAlignment;
     float m_minWidth;
     sf::Uint32 m_textStyle;
     float m_italicShear;
 
-    std::unordered_map<std::size_t, Align> m_lineAligns;
+    std::unordered_map<std::size_t, Alignment> m_lineAlignments;
     std::unordered_map<std::size_t, sf::Vector2f> m_lineOffsets;
     std::unordered_map<std::size_t, sf::Color> m_lineColors;
     std::unordered_map<std::size_t, bool> m_lineBolds;
@@ -130,10 +130,12 @@ private:
 
     struct Line
     {
+        std::size_t start;
+        std::size_t length;
         std::size_t vertexIndex;
         std::size_t numberOfQuads;
         float width;
-        Align align;
+        Alignment alignment;
         sf::Vector2f offset;
         sf::Color color;
     };

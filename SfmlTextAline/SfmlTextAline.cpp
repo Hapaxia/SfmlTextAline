@@ -86,11 +86,11 @@ void resetToDefaultValues(SfmlTextAline& sfmlTextAline)
 	sfmlTextAline.setCharacterSize(30u);
 	sfmlTextAline.setColor(sf::Color::White);
 	sfmlTextAline.setTabLength(4u);
-	sfmlTextAline.setAlign(SfmlTextAline::Align::Left);
+	sfmlTextAline.setAlignment(SfmlTextAline::Alignment::Left);
 	sfmlTextAline.setMinWidth(0.f);
 	sfmlTextAline.setTextStyle(sf::Text::Style::Regular);
 	sfmlTextAline.setItalicShear(defaultItalicShear);
-	sfmlTextAline.removeLineAligns();
+	sfmlTextAline.removeLineAlignments();
 	sfmlTextAline.removeLineOffsets();
 	sfmlTextAline.removeLineColors();
 	sfmlTextAline.removeLineBolds();
@@ -107,11 +107,11 @@ SfmlTextAline::SfmlTextAline()
 	, m_vertices()
 	, m_color{ sf::Color::White }
 	, m_tabLength{ 4u }
-	, m_globalAlign{ Align::Left }
+	, m_globalAlignment{ Alignment::Left }
 	, m_minWidth{ 0.f }
 	, m_textStyle{ sf::Text::Style::Regular }
 	, m_italicShear{ defaultItalicShear }
-	, m_lineAligns()
+	, m_lineAlignments()
 	, m_lineOffsets()
 	, m_lineColors()
 	, m_lineBolds()
@@ -180,9 +180,9 @@ void SfmlTextAline::setTabLength(const std::size_t tabLength)
 	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(tabLength);
 }
 
-void SfmlTextAline::setAlign(const Align globalAlign)
+void SfmlTextAline::setAlignment(const Alignment globalAlignment)
 {
-	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(globalAlign);
+	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(globalAlignment);
 }
 
 void SfmlTextAline::setMinWidth(const float minWidth)
@@ -206,23 +206,23 @@ void SfmlTextAline::setItalicShear()
 	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(italicShear);
 }
 
-void SfmlTextAline::setLineAlign(const std::size_t lineIndex, const Align align)
+void SfmlTextAline::setLineAlignment(const std::size_t lineIndex, const Alignment alignment)
 {
-	m_lineAligns[lineIndex] = align;
+	m_lineAlignments[lineIndex] = alignment;
 
 	m_isUpdateRequired = true;
 }
 
-void SfmlTextAline::removeLineAlign(const std::size_t lineIndex)
+void SfmlTextAline::removeLineAlignment(const std::size_t lineIndex)
 {
-	m_lineAligns.erase(lineIndex);
+	m_lineAlignments.erase(lineIndex);
 
 	m_isUpdateRequired = true;
 }
 
-void SfmlTextAline::removeLineAligns()
+void SfmlTextAline::removeLineAlignments()
 {
-	m_lineAligns.clear();
+	m_lineAlignments.clear();
 
 	m_isUpdateRequired = true;
 }
@@ -362,9 +362,9 @@ std::size_t SfmlTextAline::getTabLength() const
 	return m_tabLength;
 }
 
-SfmlTextAline::Align SfmlTextAline::getAlign() const
+SfmlTextAline::Alignment SfmlTextAline::getAlignment() const
 {
-	return m_globalAlign;
+	return m_globalAlignment;
 }
 
 float SfmlTextAline::getMinWidth() const
@@ -383,10 +383,10 @@ float SfmlTextAline::getItalicShear() const
 }
 
 
-SfmlTextAline::Align SfmlTextAline::getLineAlign(const std::size_t lineIndex) const
+SfmlTextAline::Alignment SfmlTextAline::getLineAlignment(const std::size_t lineIndex) const
 {
-	auto it{ m_lineAligns.find(lineIndex) };
-	return (it != m_lineAligns.end()) ? it->second : m_globalAlign;
+	auto it{ m_lineAlignments.find(lineIndex) };
+	return (it != m_lineAlignments.end()) ? it->second : m_globalAlignment;
 }
 
 sf::Vector2f SfmlTextAline::getLineOffset(const std::size_t lineIndex) const
@@ -463,6 +463,8 @@ void SfmlTextAline::updateVertices() const
 	std::size_t currentLine{ 0u };
 	m_lines.clear();
 
+	//std::size_t start{ 0u };
+	//std::size_t length{ 0u };
 	float lineWidth{ 0.f };
 	std::size_t lineStartIndex{ 0u };
 	std::size_t lineStartQuad{ 0u };
@@ -470,13 +472,15 @@ void SfmlTextAline::updateVertices() const
 	auto saveLine = [&](std::size_t i)
 	{
 		Line line;
+		line.start = lineStartIndex;
+		line.length = i - lineStartIndex;
 		line.width = lineWidth;
 		line.vertexIndex = lineStartQuad * 6u;
 		line.numberOfQuads = currentQuad - lineStartQuad;
-		if (auto it{ m_lineAligns.find(currentLine) }; it != m_lineAligns.end())
-			line.align = it->second;
+		if (auto it{ m_lineAlignments.find(currentLine) }; it != m_lineAlignments.end())
+			line.alignment = it->second;
 		else
-			line.align = m_globalAlign;
+			line.alignment = m_globalAlignment;
 		if (auto it{ m_lineOffsets.find(currentLine) }; it != m_lineOffsets.end())
 			line.offset = it->second;
 		else
@@ -574,32 +578,101 @@ void SfmlTextAline::updateVertices() const
 		float justifyOffset{ 0.f };
 		if (l != longestLine)
 		{
-			switch (m_lines[l].align)
+			switch (m_lines[l].alignment)
 			{
-			case Align::Right:
+			case Alignment::Right:
 				offset.x += maxLineWidth - m_lines[l].width;
 				break;
-			case Align::Center:
+			case Alignment::Center:
 				offset.x += (maxLineWidth - m_lines[l].width) / 2.f;
 				break;
-			case Align::JustifyCharacters:
-				justifyOffset = (maxLineWidth - m_lines[l].width) / (static_cast<float>(m_lines[l].numberOfQuads) - 1.f);
-				break;
-			case Align::Left:
+			case Alignment::Left:
+			case Alignment::JustifyCharacters:
+			case Alignment::JustifyWhitespace:
 			default:
 				break;
 			}
 		}
 
-		float justifyAccumulation{ 0.f };
-		for (std::size_t q{ 0u }; q < (m_lines[l].numberOfQuads); ++q)
+		if (m_lines[l].alignment == Alignment::JustifyWhitespace)
 		{
-			for (std::size_t v{ 0u }; v < 6u; ++v)
+			bool inWhiteSpaceBlock{ false };
+			std::size_t numberOfWhitespaceBlocks{ 0u };
+			for (std::size_t i{ 0u }; i < m_lines[l].length; ++i)
 			{
-				m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + justifyAccumulation, offset.y };
-				m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
+				const std::size_t currentIndex{ m_lines[l].start + i };
+				const std::uint32_t currentChar{ m_string[currentIndex] };
+				if (currentChar == ' ' || currentChar == '\t')
+				{
+					if (!inWhiteSpaceBlock)
+						++numberOfWhitespaceBlocks;
+					inWhiteSpaceBlock = true;
+				}
+				else
+					inWhiteSpaceBlock = false;
 			}
-			justifyAccumulation += justifyOffset;
+
+			justifyOffset = (numberOfWhitespaceBlocks > 0u) ? (maxLineWidth - m_lines[l].width) / (static_cast<float>(numberOfWhitespaceBlocks)) : 0.f;
+
+			std::size_t q{ 0u };
+			inWhiteSpaceBlock = false;
+			float justifyAccumulation{ 0.f };
+			for (std::size_t i{ 0u }; i < m_lines[l].length; ++i)
+			{
+				const std::size_t currentIndex{ m_lines[l].start + i };
+				const std::uint32_t currentChar{ m_string[currentIndex] };
+				
+				if (currentChar == ' ' || currentChar == '\t')
+				{
+					if (!inWhiteSpaceBlock)
+						justifyAccumulation += justifyOffset;
+					inWhiteSpaceBlock = true;
+				}
+				else
+				{
+					for (std::size_t v{ 0u }; v < 6u; ++v)
+					{
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + justifyAccumulation, offset.y };
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
+					}
+					++q;
+					inWhiteSpaceBlock = false;
+				}
+			}
+		}
+		else if (m_lines[l].alignment == Alignment::JustifyCharacters)
+		{
+			justifyOffset = (m_lines[l].length > 2u) ? (maxLineWidth - m_lines[l].width) / (static_cast<float>(m_lines[l].length) - 1.f) : 0.f;
+
+			std::size_t q{ 0u };
+			float justifyAccumulation{ 0.f };
+			for (std::size_t i{ 0u }; i < m_lines[l].length; ++i)
+			{
+				const std::size_t currentIndex{ m_lines[l].start + i };
+				const std::uint32_t currentChar{ m_string[currentIndex] };
+
+				if (!(currentChar == ' ' || currentChar == '\t'))
+				{
+					for (std::size_t v{ 0u }; v < 6u; ++v)
+					{
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + justifyAccumulation, offset.y };
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
+					}
+					++q;
+				}
+				justifyAccumulation += justifyOffset;
+			}
+		}
+		else
+		{
+			for (std::size_t q{ 0u }; q < (m_lines[l].numberOfQuads); ++q)
+			{
+				for (std::size_t v{ 0u }; v < 6u; ++v)
+				{
+					m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += offset;
+					m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
+				}
+			}
 		}
 	}
 
