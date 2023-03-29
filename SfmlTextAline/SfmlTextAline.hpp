@@ -146,8 +146,6 @@ private:
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void updateVertices() const;
-
-    */
 };
 
 #ifndef SFMLTEXTALINE_NO_CLASS_SHORTCUT
