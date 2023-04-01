@@ -44,6 +44,7 @@
 #include <string>
 #include <unordered_map>
 
+// SfmlTextAline v0.3.1 (WIP)
 class SfmlTextAline : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -146,7 +147,6 @@ private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void updateVertices() const;
 
-    */
 };
 
 #ifndef SFMLTEXTALINE_NO_CLASS_SHORTCUT
