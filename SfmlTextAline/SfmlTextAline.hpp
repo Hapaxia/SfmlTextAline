@@ -44,7 +44,6 @@
 #include <string>
 #include <unordered_map>
 
-// SfmlTextAline v0.3.0 (WIP)
 class SfmlTextAline : public sf::Drawable, public sf::Transformable
 {
 public:
