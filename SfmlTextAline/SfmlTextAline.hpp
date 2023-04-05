@@ -44,7 +44,7 @@
 #include <string>
 #include <unordered_map>
 
-// SfmlTextAline v0.3.1 (WIP)
+// SfmlTextAline v0.4.0 (WIP)
 class SfmlTextAline : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -73,6 +73,9 @@ public:
     void setTextStyle(sf::Uint32 textStyle); // currently only uses bold and italic; ignores others
     void setItalicShear(float italicShear);
     void setItalicShear(); // resets to default value: SFML's value
+    void setLineHeightMultiplier(float lineHeightMultiplier);
+    void setLetterSpacingMultiplier(float letterSpacingMultiplier);
+    void setIsRoundingApplied(bool isRoundingApplied);
 
     void setLineAlignment(std::size_t lineIndex, Alignment alignment);
     void removeLineAlignment(std::size_t lineIndex);
@@ -102,12 +105,18 @@ public:
     float getMinWidth() const;
     sf::Uint32 getTextStyle() const;
     float getItalicShear() const;
+    float getLineHeightMultiplier() const;
+    float getLetterSpacingMultiplier() const;
+    bool getIsRoundingApplied() const;
 
     Alignment getLineAlignment(std::size_t lineIndex) const;
     sf::Vector2f getLineOffset(std::size_t lineIndex) const;
     sf::Color getLineColor(std::size_t lineIndex) const;
     bool getLineBold(std::size_t lineIndex) const;
     bool getLineItalic(std::size_t lineIndex) const;
+
+    sf::FloatRect getLocalBounds() const;
+    sf::FloatRect getGlobalBounds() const;
 
 
 
@@ -121,6 +130,9 @@ private:
     float m_minWidth;
     sf::Uint32 m_textStyle;
     float m_italicShear;
+    float m_lineHeightMultiplier;
+    float m_letterSpacingMultiplier;
+    bool m_isRoundingApplied;
 
     std::unordered_map<std::size_t, Alignment> m_lineAlignments;
     std::unordered_map<std::size_t, sf::Vector2f> m_lineOffsets;
@@ -140,6 +152,7 @@ private:
         sf::Color color;
     };
 
+    mutable sf::FloatRect m_localBounds;
     mutable bool m_isUpdateRequired;
     mutable std::vector<sf::Vertex> m_vertices;
     mutable std::vector<Line> m_lines;

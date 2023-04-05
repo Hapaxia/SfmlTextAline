@@ -41,6 +41,7 @@
 //#include <iostream>
 #include <algorithm>
 #include <functional>
+#include <cmath>
 
 #define SET_AND_UPDATE_MEMBER_IF_DIFFERENT_PTR(x) do { if ((m_##x) != &##x) { ((m_##x) = &##x); m_isUpdateRequired = true; } } while(0)
 #define SET_AND_UPDATE_MEMBER_IF_DIFFERENT(x) do { if ((m_##x) != x) { ((m_##x) = x); m_isUpdateRequired = true; } } while(0)
@@ -90,6 +91,9 @@ void resetToDefaultValues(SfmlTextAline& sfmlTextAline)
 	sfmlTextAline.setMinWidth(0.f);
 	sfmlTextAline.setTextStyle(sf::Text::Style::Regular);
 	sfmlTextAline.setItalicShear(defaultItalicShear);
+	sfmlTextAline.setLetterSpacingMultiplier(0.f);
+	sfmlTextAline.setLineHeightMultiplier(1.f);
+	sfmlTextAline.setIsRoundingApplied(true);
 	sfmlTextAline.removeLineAlignments();
 	sfmlTextAline.removeLineOffsets();
 	sfmlTextAline.removeLineColors();
@@ -116,6 +120,9 @@ SfmlTextAline::SfmlTextAline()
 	, m_lineColors()
 	, m_lineBolds()
 	, m_lineItalics()
+	, m_lineHeightMultiplier{ 1.f }
+	, m_letterSpacingMultiplier{ 0.f }
+	, m_isRoundingApplied{ true }
 {
 }
 
@@ -144,6 +151,9 @@ void SfmlTextAline::operator=(const sf::Text& sfmlText)
 	setOrigin(sfmlText.getOrigin());
 	setRotation(sfmlText.getRotation());
 	setScale(sfmlText.getScale());
+
+	setLineHeightMultiplier(sfmlText.getLineSpacing());
+	setLetterSpacingMultiplier((sfmlText.getLetterSpacing() - 1.f) / 3.f);
 
 	m_isUpdateRequired = true;
 }
@@ -204,6 +214,21 @@ void SfmlTextAline::setItalicShear()
 {
 	const float italicShear{ defaultItalicShear };
 	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(italicShear);
+}
+
+void SfmlTextAline::setLineHeightMultiplier(const float lineHeightMultiplier)
+{
+	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(lineHeightMultiplier);
+}
+
+void SfmlTextAline::setLetterSpacingMultiplier(const float letterSpacingMultiplier)
+{
+	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(letterSpacingMultiplier);
+}
+
+void SfmlTextAline::setIsRoundingApplied(const bool isRoundingApplied)
+{
+	SET_AND_UPDATE_MEMBER_IF_DIFFERENT(isRoundingApplied);
 }
 
 void SfmlTextAline::setLineAlignment(const std::size_t lineIndex, const Alignment alignment)
@@ -382,6 +407,21 @@ float SfmlTextAline::getItalicShear() const
 	return m_italicShear;
 }
 
+float SfmlTextAline::getLineHeightMultiplier() const
+{
+	return m_lineHeightMultiplier;
+}
+
+float SfmlTextAline::getLetterSpacingMultiplier() const
+{
+	return m_letterSpacingMultiplier;
+}
+
+bool SfmlTextAline::getIsRoundingApplied() const
+{
+	return m_isRoundingApplied;
+}
+
 
 SfmlTextAline::Alignment SfmlTextAline::getLineAlignment(const std::size_t lineIndex) const
 {
@@ -411,6 +451,17 @@ bool SfmlTextAline::getLineItalic(const std::size_t lineIndex) const
 {
 	auto it{ m_lineItalics.find(lineIndex) };
 	return (it != m_lineItalics.end()) ? it->second : ((m_textStyle & sf::Text::Style::Italic) == sf::Text::Style::Italic);
+}
+
+sf::FloatRect SfmlTextAline::getLocalBounds() const
+{
+	updateVertices();
+	return m_localBounds;
+}
+
+sf::FloatRect SfmlTextAline::getGlobalBounds() const
+{
+	return getTransform().transformRect(getLocalBounds());
 }
 
 
@@ -456,15 +507,12 @@ void SfmlTextAline::updateVertices() const
 	const bool globalBold{ (m_textStyle & sf::Text::Style::Bold) == sf::Text::Style::Bold };
 	const bool globalItalic{ (m_textStyle & sf::Text::Style::Italic) == sf::Text::Style::Italic };
 	
-	const float lineHeight{ m_font->getLineSpacing(static_cast<unsigned int>(m_characterSize)) };
-	//sf::Vector2f position{ 0.f, lineHeight };
+	const float lineHeight{ m_font->getLineSpacing(static_cast<unsigned int>(m_characterSize)) * m_lineHeightMultiplier };
 	sf::Vector2f position{ 0.f, static_cast<float>(m_characterSize) };
 
 	std::size_t currentLine{ 0u };
 	m_lines.clear();
 
-	//std::size_t start{ 0u };
-	//std::size_t length{ 0u };
 	float lineWidth{ 0.f };
 	std::size_t lineStartIndex{ 0u };
 	std::size_t lineStartQuad{ 0u };
@@ -515,6 +563,7 @@ void SfmlTextAline::updateVertices() const
 
 		// calculate spacing
 		const float spaceWidth{ m_font->getGlyph(' ', static_cast<unsigned int>(m_characterSize), bold).advance };
+		const float letterSpacing{ spaceWidth * m_letterSpacingMultiplier };
 
 		// whitespace
 		if ((currentChar == ' ') || (currentChar == '\n') || (currentChar == '\t'))
@@ -522,10 +571,10 @@ void SfmlTextAline::updateVertices() const
 			switch (currentChar)
 			{
 			case ' ':
-				position.x += spaceWidth;
+				position.x += spaceWidth + letterSpacing;
 				break;
 			case '\t':
-				position.x += spaceWidth * m_tabLength;
+				position.x += (spaceWidth * m_tabLength) + letterSpacing;
 				break;
 			case '\n':
 				saveLine(i);
@@ -546,7 +595,7 @@ void SfmlTextAline::updateVertices() const
 		const sf::Glyph& glyph = m_font->getGlyph(currentChar, static_cast<unsigned int>(m_characterSize), bold);
 		::setGlyph(m_vertices, currentQuad, glyph, position, italic ? m_italicShear : 0.f);
 
-		position.x += glyph.advance;
+		position.x += glyph.advance + letterSpacing;
 
 		// final line
 		if (i == (m_string.getSize() - 1u))
@@ -581,10 +630,10 @@ void SfmlTextAline::updateVertices() const
 			switch (m_lines[l].alignment)
 			{
 			case Alignment::Right:
-				offset.x += maxLineWidth - m_lines[l].width;
+				offset.x += m_isRoundingApplied ? std::round(maxLineWidth - m_lines[l].width) : maxLineWidth - m_lines[l].width;
 				break;
 			case Alignment::Center:
-				offset.x += (maxLineWidth - m_lines[l].width) / 2.f;
+				offset.x += m_isRoundingApplied ? std::round((maxLineWidth - m_lines[l].width) / 2.f) : (maxLineWidth - m_lines[l].width) / 2.f;
 				break;
 			case Alignment::Left:
 			case Alignment::JustifyCharacters:
@@ -632,7 +681,7 @@ void SfmlTextAline::updateVertices() const
 				{
 					for (std::size_t v{ 0u }; v < 6u; ++v)
 					{
-						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + justifyAccumulation, offset.y };
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + (m_isRoundingApplied ? std::round(justifyAccumulation) : justifyAccumulation), offset.y };
 						m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
 					}
 					++q;
@@ -655,7 +704,7 @@ void SfmlTextAline::updateVertices() const
 				{
 					for (std::size_t v{ 0u }; v < 6u; ++v)
 					{
-						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + justifyAccumulation, offset.y };
+						m_vertices[m_lines[l].vertexIndex + q * 6u + v].position += { offset.x + (m_isRoundingApplied ? std::round(justifyAccumulation) : justifyAccumulation), offset.y };
 						m_vertices[m_lines[l].vertexIndex + q * 6u + v].color = m_lines[l].color;
 					}
 					++q;
@@ -675,6 +724,20 @@ void SfmlTextAline::updateVertices() const
 			}
 		}
 	}
+
+	// calculate local bounds
+	m_localBounds.left = static_cast<float>(m_characterSize);
+	m_localBounds.top = static_cast<float>(m_characterSize);
+	sf::Vector2f max{ 0.f, 0.f };
+	for (auto& vertex : m_vertices)
+	{
+		m_localBounds.left = std::min(m_localBounds.left, vertex.position.x);
+		m_localBounds.top = std::min(m_localBounds.top, vertex.position.y);
+		max.x = std::max(max.x, vertex.position.x);
+		max.y = std::max(max.y, vertex.position.y);
+	}
+	m_localBounds.width = max.x - m_localBounds.left;
+	m_localBounds.height = max.y - m_localBounds.top;
 
 	// all done
 	m_isUpdateRequired = false;
