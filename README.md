@@ -26,6 +26,6 @@ Planned - but currently missing - features:
 
 You now use just the shortcut class name Aline instead of its full name SfmlTextAline. If you would like to cancel the shortcut from being created, define SFMLTEXTALINE_NO_CLASS_SHORTCUT before including the class.
 
-The alignment enum class has been renamed to make it more convenient. It is now just Align instead of LineAlignment.
+The alignment enum class has been renamed to make it more convenient. It is now just Alignment instead of LineAlignment.
 
-So, you can access the alignment enum class by simply using it like this: `Aline::Align::Center`.
+So, you can access the alignment enum class by simply using it like this: `Aline::Alignment::Center`.
