@@ -14,14 +14,14 @@ Features:
 - The length of a tab character can be customised to any set number of spaces
 - Kerning is applied
 - Some text styles (bold and italic - italic shear amount is customisable)
+- Letter spacing
+- Line spacing
+- Bounds
 - A minimum width can be specified that allows for a virtual right side margin when aligning
 
 Planned - but currently missing - features:
 - Other text styles (underline and strike-through)
 - Outline
-- Letter spacing
-- Line spacing
-- Bounds
 >> Note that these missing features are available in the original sf::Text but yet included here.
 
 You now use just the shortcut class name Aline instead of its full name SfmlTextAline. If you would like to cancel the shortcut from being created, define SFMLTEXTALINE_NO_CLASS_SHORTCUT before including the class.
